@@ -1,18 +1,5 @@
 import requests
 
-# def read_api_key():
-
-#     try:
-#         with open("Creds/VirusTotalAPI.txt", 'r') as file:
-#             api_key = file.read().strip()  # Strip any leading/trailing whitespace
-#             return api_key
-#     except FileNotFoundError:
-#         print("Error: File 'Creds/VirusTotalAPI.txt' not found.")
-#         return None
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         return None
-
 def scan_url(url_to_scan,api_key):
 
     url = "https://www.virustotal.com/api/v3/urls"
@@ -46,11 +33,3 @@ def get_url_report(vt_url,api_key):
     except requests.exceptions.RequestException as e:
         print("Error:", e)
         return None
-
-# Example usage:
-# if __name__ == "__main__":
-#     scan_result = scan_url("www.google.com")
-#     if scan_result:
-#         url_report = get_url_report(scan_result.get("data", {}).get("links", {}).get("self"))
-#         if url_report:
-#             print(url_report)
