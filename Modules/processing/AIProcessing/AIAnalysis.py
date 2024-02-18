@@ -19,9 +19,3 @@ def load_model_and_predict(input_text):
     predicted_class = "Phishing" if prediction[0][0] > 0.5 else "Legitimate"
 
     return predicted_class
-
-# input_text = "Dear Customer, your account has been compromised. Please click the link to reset your password."
-# prediction = load_model_and_predict(input_text)
-# print("Predicted class:", prediction)
-
-
