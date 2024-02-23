@@ -2,92 +2,80 @@ from Modules.Preprocessing import Eml_to_Json
 from Modules.processing.AIProcessing import AIAnalysis
 from Modules.processing.VirusTotalChecks import CommonCheckDataCollection
 
-email_to_analyse = Eml_to_Json.convert_eml_to_json("Emails/test 2.eml")
-
-
 #quick version need to make a gui version and clean it up more but it works for now for user reading will work on a score system
 
-
-################ API Key ############################
-
-def read_api_file(file_path):
+def read_api_key(file_path):
     try:
         with open(file_path, 'r') as file:
-            content = file.read()
-        return content
+            return file.read().strip()
     except FileNotFoundError:
         return "File not found."
     except Exception as e:
         return f"An error occurred: {e}"
 
+def check_attachments(email_data, api_key):
+    attachments = email_data.get("attachment", [])
 
-################ Attachments #######################
-def check_Attachments(email_to_analyse,apikey):
+    if not attachments:
+        print("No Attachments")
+        return
 
-    if "attachment" in email_to_analyse:
-        print("____________ Attachment Report ____________ \n")
-        for attachment in email_to_analyse["attachment"]:
+    print("____________ Attachment Report ____________\n")
 
-            print ("File Name: ",attachment["filename"])
-            print("File extension: ",attachment["extension"])
-            data = CommonCheckDataCollection.get_file_hash_report(attachment["hash"]["md5"],apikey)
+    for attachment in attachments:
+        filename = attachment.get("filename", "Unknown")
+        extension = attachment.get("extension", "Unknown")
+        hash_md5 = attachment["hash"].get("md5", "")
+        print("File Name: ", filename)
+        print("File Extension: ", extension)
+        data = CommonCheckDataCollection.get_file_hash_report(hash_md5, api_key)
 
-            if data != "":
-                data=data["data"]["attributes"]
-                print("Current Virus Total Stats: ",data["total_votes"])
-                print("Virus Total reputation: ",data["reputation"])
-                print("Submitted Count: ", data["times_submitted"])
-                print("Last Virus Total Stats",data["last_analysis_stats"])
-                
+        if data:
+            data = data.get("data", {}).get("attributes", {})
+            print("Current Virus Total Stats: ", data.get("total_votes", "Not available"))
+            print("Virus Total Reputation: ", data.get("reputation", "Not available"))
+            print("Submitted Count: ", data.get("times_submitted", "Not available"))
+            print("Last Virus Total Stats: ", data.get("last_analysis_stats", "Not available"))
+            trid_info = data.get("trid", [])
 
-                if "trid" in data:
-                    for trid in data["trid"]:
-                        print("File TrID:",trid["file_type"]," ",trid["probability"])
+            for trid in trid_info:
+                file_type = trid.get("file_type", "")
+                probability = trid.get("probability", "")
+                print("File TrID:", file_type, " ", probability)
 
-            else:
-                print('No Data From Virus Total')
+        else:
+            print('No Data From Virus Total')
 
-            print("\n")
+        print("\n")
 
-    else:
-        return "No Attachments"
-
-
-################ Body ##############################
-
-
-def check_Body(email_to_analyse,apikey):
-
+def check_body(email_data):
     print("___________________ Body Text Check _________________\n")
+    bodies = email_data.get("body", [])
 
-    if "body" in email_to_analyse:
-        for body in email_to_analyse["body"]:
-            print("AI Body text output: ",AIAnalysis.ai_bodytext_analysis(body["content"]))
-            print("Content Type: ", body["content_type"])
+    if not bodies:
+        print("No Body Text")
+        return
 
-    #Scan URLS
-            print("URLS in Email: ", body["uri"])
-            print("URL Scans: Not working yet" )
-    #Scan Domains
-            print("Domains Listed: ", body["domain"])
-            print("Domain Virus Total Scans: Not working yet") #to DO
+    for body in bodies:
+        content = body.get("content", "")
+        content_type = body.get("content_type", "Unknown")
+        uri = body.get("uri", [])
+        domain = body.get("domain", [])
 
-            print("\n")
+        print("AI Body text output: ", AIAnalysis.ai_bodytext_analysis(content))
+        print("Content Type: ", content_type)
+        print("URLs in Email: ", uri)
+        print("URL Scans: Not working yet")
+        print("Domains Listed: ", domain)
+        print("Domain Virus Total Scans: Not working yet")  # To Do
 
+        print("\n")
 
-################### Headers #######################
+def main():
+    email_to_analyse = Eml_to_Json.convert_eml_to_json("Emails/test 2.eml")
+    api_key = read_api_key("Creds/VirusTotalAPI.txt")
+    check_attachments(email_to_analyse, api_key)
+    check_body(email_to_analyse)
 
-
-
-
-
-
-
-
-
-
-
-######################  MAIN  ######################
-apikey = read_api_file("Creds\VirusTotalAPI.txt")
-check_Attachments(email_to_analyse,apikey)
-check_Body(email_to_analyse,apikey)
+if __name__ == "__main__":
+    main()
